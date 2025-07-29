@@ -19,11 +19,17 @@ def download_github_directory(repo_url, directory_path, local_path="downloaded_d
     try:
         # Clean up any existing temp directory
         if os.path.exists(temp_repo):
-            shutil.rmtree(temp_repo)
+            try:
+                shutil.rmtree(temp_repo)
+            except OSError as e:
+                print(f"Warning: Could not remove existing temp directory: {e}")
+                # Try to use a different temp directory name
+                import time
+                temp_repo = f"temp_repo_{str(hash(repo_url))[:8]}_{int(time.time())}"
         
         print(f"Cloning repository...")
         # Clone with no checkout and minimal history
-        subprocess.run([
+        result = subprocess.run([
             "git", "clone", 
             "--filter=blob:none",  # Don't download file contents initially
             "--no-checkout", 
@@ -55,14 +61,26 @@ def download_github_directory(repo_url, directory_path, local_path="downloaded_d
         source_dir = os.path.join(temp_repo, directory_path)
         if os.path.exists(source_dir):
             if os.path.exists(local_path):
-                shutil.rmtree(local_path)
-            shutil.copytree(source_dir, local_path)
+                try:
+                    shutil.rmtree(local_path)
+                except OSError as e:
+                    print(f"Warning: Could not remove existing local directory: {e}")
             
-            # Count files
-            file_count = sum(1 for _ in Path(local_path).rglob('*') if _.is_file())
-            print(f"Successfully downloaded {file_count} files to: {local_path}")
+            try:
+                shutil.copytree(source_dir, local_path)
+                # Count files
+                file_count = sum(1 for _ in Path(local_path).rglob('*') if _.is_file())
+                print(f"Successfully downloaded {file_count} files to: {local_path}")
+            except OSError as e:
+                if "No space left on device" in str(e):
+                    print(f"Error: Not enough disk space to copy files. Free up some space and try again.")
+                    print(f"You can check disk usage with: df -h")
+                else:
+                    print(f"Error copying files: {e}")
+                return False
         else:
             print(f"Directory '{directory_path}' not found in repository")
+            return False
             
     except subprocess.CalledProcessError as e:
         print(f"Git command failed: {e}")
@@ -70,14 +88,26 @@ def download_github_directory(repo_url, directory_path, local_path="downloaded_d
             print(f"stdout: {e.stdout}")
         if e.stderr:
             print(f"stderr: {e.stderr}")
+        return False
     except Exception as e:
         print(f"Error: {e}")
+        return False
     finally:
         # Ensure we're back in original directory
-        os.chdir(original_dir)
-        # Cleanup
+        try:
+            os.chdir(original_dir)
+        except OSError:
+            pass
+        
+        # Cleanup with better error handling
         if os.path.exists(temp_repo):
-            shutil.rmtree(temp_repo)
+            try:
+                shutil.rmtree(temp_repo)
+            except OSError as e:
+                print(f"Warning: Could not clean up temp directory '{temp_repo}': {e}")
+                print(f"You may need to manually remove it: rm -rf {temp_repo}")
+    
+    return True
 
 
 def get_event_by_id(events, id):
