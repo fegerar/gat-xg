@@ -1,8 +1,10 @@
 statsbomb/*
 
-app/utils/__pycache__/
+**/__pycache__/
 poetry.lock
 
 temp_repo_*
 
 .venv/
+
+.DS_Store

@@ -6,12 +6,14 @@ authors = [
     {name = "Federico Gerardi",email = "federico.gerardi03@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "requests (>=2.32.4,<3.0.0)",
     "tqdm (>=4.0.0,<5.0.0)",
     "torch (>=2.7.1,<3.0.0)",
-    "torch-geometric (>=2.6.1,<3.0.0)"
+    "torch-geometric (>=2.6.1,<3.0.0)",
+    "numpy (>=2.3.2,<3.0.0)",
+    "matplotlib (>=3.10.3,<4.0.0)"
 ]
 
 
