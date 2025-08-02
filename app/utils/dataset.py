@@ -108,7 +108,6 @@ def download_github_directory(repo_url, directory_path, local_path="downloaded_d
     
     return True
 
-
 def get_event_by_id(events, id):
     return [event for event in events if event['id'] == id][0]
 
@@ -206,12 +205,20 @@ def progressive_graphs(possession):
         graphs.append(graph)
     return graphs
 
-def game2graphs(file_path, possession_idx=0):
+def game2graphs(file_path):
     """
     Create a list of progressive sequence of graphs from a game file.
     """
-    pass
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+
+    possessions = split_ball_possessions(data)
+    shot_possessions = select_only_shot_possessions(possessions)
     
+    for pos in shot_possessions:
+        pos['possession'] = progressive_graphs(pos)
+    
+    return shot_possessions
 
 def explore_possessions(file_path):
     """

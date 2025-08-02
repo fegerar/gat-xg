@@ -8,3 +8,4 @@ temp_repo_*
 .venv/
 
 .DS_Store
+dataset/processed_data.pkl
