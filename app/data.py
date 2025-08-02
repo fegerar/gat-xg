@@ -13,7 +13,7 @@ if not os.path.exists("../statsbomb"):
 
 # List all files in the directory
 statsbomb_dir = "../statsbomb"
-statsbomb_files = [f"../statsbomb/{f}" for f in os.listdir(statsbomb_dir) if f.endswith('.json')] # just for testing
+statsbomb_files = [f"../statsbomb/{f}" for f in os.listdir(statsbomb_dir) if f.endswith('.json')][2] # just for testing
 
 # pbar = tqdm.tqdm(statsbomb_files, desc="Processing StatsBomb files", unit="file")
 # for file in pbar:
@@ -27,17 +27,4 @@ statsbomb_files = [f"../statsbomb/{f}" for f in os.listdir(statsbomb_dir) if f.e
 #     except:
 #         failed += 1
 
-total_len = 0
-total_shot = 0
-pbar = tqdm.tqdm(statsbomb_files, desc="Processing StatsBomb files", unit="file")
-for file in pbar:
-    try:
-        len, shot = game2graphs(file)
-    except:
-        pass
-
-    total_len += len
-    total_shot += shot
-
-print("Total Possessions:", total_len)
-print("Total Shots:", total_shot)
+game2graphs(statsbomb_files)

@@ -6,7 +6,6 @@ from pathlib import Path
 import torch
 from torch_geometric.data import Data
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def download_github_directory(repo_url, directory_path, local_path="downloaded_dir", branch="main"):
@@ -112,7 +111,6 @@ def download_github_directory(repo_url, directory_path, local_path="downloaded_d
 
 def get_event_by_id(events, id):
     return [event for event in events if event['id'] == id][0]
-     
 
 def split_ball_possessions(events):
     """
@@ -154,22 +152,77 @@ def split_ball_possessions(events):
     
     return possessions
 
-def game2graphs(file_path):
+def select_only_shot_possessions(possessions):
     """
-    Create a graph representation from game data.
+    Filter possessions to only include those that lead to a shot.
     """
-    # edge_index = torch.tensor()
-    # edge_features = torch.tensor()
-    # x = torch.tensor()
-    with open(file_path, "r") as f:
-        game = json.load(f)
-        poss = split_ball_possessions(game)
-        count_shot = 0
-        for pos in poss:
-            if pos["xg"] > 0.0:
-                count_shot += 1
+    return [pos for pos in possessions if pos['xg'] > 0.0]
+
+def possession_to_graph(possession):
+    """
+    Convert a single possession to a graph representation.
+    """
+    nodes = []
+    edges = []
     
-        return len(poss), count_shot
+    for i, event in enumerate(possession['possession']):
+        if event['type']['name'] == 'Pass':
+            # Create node for the pass
+            nodes.append({
+                'id': i,
+                'x': event['location'][0],
+                'y': event['location'][1],
+                'team': event['team']['name']
+            })
+            
+            # Add edge to next pass if exists
+            if i < len(possession['possession']) - 1:
+                next_event = possession['possession'][i + 1]
+                if next_event['type']['name'] == 'Pass':
+                    edges.append((i, i + 1))
+    
+    # Create PyTorch Geometric Data object
+    if edges:
+        edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
+    else:
+        edge_index = torch.empty((2, 0), dtype=torch.long)
+    
+    x = torch.tensor([[node['x'], node['y']] for node in nodes], dtype=torch.float)
+    
+    return Data(x=x, edge_index=edge_index)
 
+def progressive_graphs(possession):
+    """
+    Create a list of progressive graphs from a single possession.
+    Each graph contains all passes up to that point in the possession.
+    """
+    graphs = []
+    possession_events = possession['possession']
+    
+    for i in range(len(possession_events)):
+        # Create a graph with passes up to index i+1
+        partial_possession = {'possession': possession_events[:i+1], 'xg': possession['xg']}
+        graph = possession_to_graph(partial_possession)
+        graphs.append(graph)
+    return graphs
 
+def game2graphs(file_path, possession_idx=0):
+    """
+    Create a list of progressive sequence of graphs from a game file.
+    """
+    pass
+    
 
+def explore_possessions(file_path):
+    """
+    Helper function to explore all shot possessions in a game file.
+    This function is kept for backward compatibility and calls the visualization module.
+    
+    Args:
+        file_path: Path to the StatsBomb JSON file
+    
+    Returns:
+        list: List of all shot possessions
+    """
+    from .visualization import explore_possessions as viz_explore_possessions
+    return viz_explore_possessions(file_path)
