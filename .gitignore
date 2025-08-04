@@ -1,4 +1,5 @@
-statsbomb/*
+statsbomb/
+dataset/
 
 **/__pycache__/
 poetry.lock
@@ -8,4 +9,3 @@ temp_repo_*
 .venv/
 
 .DS_Store
-dataset/processed_data.pkl
