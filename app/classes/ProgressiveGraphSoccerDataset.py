@@ -203,95 +203,52 @@ class ProgressiveGraphSoccerDataset(Dataset):
         
         return new_dataset
     
+    @staticmethod
+    def collate_football_sequences(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Custom collate function for batching football sequences.
+        
+        Args:
+            batch: List of samples from the dataset
+            
+        Returns:
+            Batched data ready for model training
+        """
+        if 'graphs' in batch[0]:  # Full sequence mode
+            # Batch sequences
+            batched_sequences = []
+            max_seq_len = max(len(sample['graphs']) for sample in batch)
+            
+            for sample in batch:
+                graphs = sample['graphs']
+                # Pad sequence if necessary
+                while len(graphs) < max_seq_len:
+                    empty_graph = Data(
+                        x=torch.empty((0, 2), dtype=torch.float32),
+                        edge_index=torch.empty((2, 0), dtype=torch.long)
+                    )
+                    graphs.append(empty_graph)
+                batched_sequences.append(graphs)
+            
+            return {
+                'sequences': batched_sequences,
+                'xg': torch.stack([sample['xg'] for sample in batch]),
+                'game_ids': [sample['game_id'] for sample in batch],
+                'sequence_lengths': torch.tensor([sample['sequence_length'] for sample in batch])
+            }
+        
+        else:  # Single graph mode
+            # Batch individual graphs
+            graphs = [sample['graph'] for sample in batch]
+            batched_graphs = Batch.from_data_list(graphs)
+            
+            return {
+                'graphs': batched_graphs,
+                'xg': torch.stack([sample['xg'] for sample in batch]),
+                'game_ids': [sample['game_id'] for sample in batch],
+                'graph_positions': torch.tensor([sample['graph_position'] for sample in batch]),
+                'sequence_lengths': torch.tensor([sample['sequence_length'] for sample in batch])
+            }
 
-def collate_football_sequences(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Custom collate function for batching football sequences.
-    
-    Args:
-        batch: List of samples from the dataset
-        
-    Returns:
-        Batched data ready for model training
-    """
-    if 'graphs' in batch[0]:  # Full sequence mode
-        # Batch sequences
-        batched_sequences = []
-        max_seq_len = max(len(sample['graphs']) for sample in batch)
-        
-        for sample in batch:
-            graphs = sample['graphs']
-            # Pad sequence if necessary
-            while len(graphs) < max_seq_len:
-                empty_graph = Data(
-                    x=torch.empty((0, 2), dtype=torch.float32),
-                    edge_index=torch.empty((2, 0), dtype=torch.long)
-                )
-                graphs.append(empty_graph)
-            batched_sequences.append(graphs)
-        
-        return {
-            'sequences': batched_sequences,
-            'xg': torch.stack([sample['xg'] for sample in batch]),
-            'game_ids': [sample['game_id'] for sample in batch],
-            'sequence_lengths': torch.tensor([sample['sequence_length'] for sample in batch])
-        }
-    
-    else:  # Single graph mode
-        # Batch individual graphs
-        graphs = [sample['graph'] for sample in batch]
-        batched_graphs = Batch.from_data_list(graphs)
-        
-        return {
-            'graphs': batched_graphs,
-            'xg': torch.stack([sample['xg'] for sample in batch]),
-            'game_ids': [sample['game_id'] for sample in batch],
-            'graph_positions': torch.tensor([sample['graph_position'] for sample in batch]),
-            'sequence_lengths': torch.tensor([sample['sequence_length'] for sample in batch])
-        }
 
 
-# Example usage and utility functions
-def create_train_val_split(dataset: ProgressiveGraphSoccerDataset, train_ratio: float = 0.8, random_seed: int = 42) -> Tuple[ProgressiveGraphSoccerDataset, ProgressiveGraphSoccerDataset]:
-    """
-    Split dataset into train and validation sets.
-    
-    Args:
-        dataset: The dataset to split
-        train_ratio: Ratio of training data
-        random_seed: Random seed for reproducibility
-        
-    Returns:
-        Tuple of (train_dataset, val_dataset)
-    """
-    torch.manual_seed(random_seed)
-    total_size = len(dataset)
-    train_size = int(train_ratio * total_size)
-    
-    indices = torch.randperm(total_size)
-    train_indices = indices[:train_size]
-    val_indices = indices[train_size:]
-    
-    # Create train dataset
-    train_data = [dataset.data[i] for i in train_indices]
-    train_dataset = ProgressiveGraphSoccerDataset.__new__(ProgressiveGraphSoccerDataset)
-    train_dataset.pickle_path = dataset.pickle_path
-    train_dataset.sequence_length = dataset.sequence_length
-    train_dataset.use_full_sequence = dataset.use_full_sequence
-    train_dataset.normalize_coordinates = dataset.normalize_coordinates
-    train_dataset.field_dimensions = dataset.field_dimensions
-    train_dataset.data = train_data
-    train_dataset._calculate_stats()
-    
-    # Create validation dataset
-    val_data = [dataset.data[i] for i in val_indices]
-    val_dataset = ProgressiveGraphSoccerDataset.__new__(ProgressiveGraphSoccerDataset)
-    val_dataset.pickle_path = dataset.pickle_path
-    val_dataset.sequence_length = dataset.sequence_length
-    val_dataset.use_full_sequence = dataset.use_full_sequence
-    val_dataset.normalize_coordinates = dataset.normalize_coordinates
-    val_dataset.field_dimensions = dataset.field_dimensions
-    val_dataset.data = val_data
-    val_dataset._calculate_stats()
-    
-    return train_dataset, val_dataset
