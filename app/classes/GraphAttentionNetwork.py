@@ -51,7 +51,7 @@ class GraphAttentionNetwork(nn.Module):
                 concat=False,  # Always average heads for consistent dimensions
                 dropout=dropout,
                 add_self_loops=True,
-                goal=(0.0, 0.0)  # TODO Put the actual goal
+                goal=(120.0, 40.0)  # Statsbomb definition
             )
             self.gat_convs.append(gat_conv)
 
@@ -96,15 +96,17 @@ class GraphAttentionNetwork(nn.Module):
                 nn.init.ones_(module.weight)
                 nn.init.zeros_(module.bias)
 
-    def forward(self, batch_data: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def forward(self, batch_data: Dict[str, Any], return_attention: bool = False) -> Dict[str, torch.Tensor]:
         """
         Forward pass through the complete model.
 
         Args:
             batch_data: Dictionary containing 'graph' - Batched Data object
+            return_attention: If True, also return per-layer attention weights.
 
         Returns:
             Dictionary containing 'predictions' - xG predictions [batch_size, 1]
+            Optionally adds 'attentions': list of dicts with keys 'edge_index', 'alpha' (E,H) per layer
         """
         # Get the graph data
         data = batch_data['graph']
@@ -112,17 +114,30 @@ class GraphAttentionNetwork(nn.Module):
 
         # Handle empty graphs
         if x.size(0) == 0:
-            return {
+            out = {
                 'predictions': torch.zeros(1, 1, device=x.device if x.numel() > 0 else torch.device('cpu'))
             }
+            if return_attention:
+                out['attentions'] = []
+            return out
 
         # Input projection
         x = self.input_projection(x)
         x = F.relu(x)
 
+        attentions = [] if return_attention else None
+
         # GAT layers
         for i, gat_conv in enumerate(self.gat_convs):
-            x = gat_conv(x, edge_index)
+            if return_attention:
+                x, (ei, alpha) = gat_conv(x, edge_index, return_attention_weights=True)
+                attentions.append({
+                    'layer': i,
+                    'edge_index': ei.detach().cpu(),  # [2, E]
+                    'alpha': alpha.detach().cpu()      # [E, H]
+                })
+            else:
+                x = gat_conv(x, edge_index)
             x = self.layer_norms[i](x)
             x = F.relu(x)
             x = self.dropout_layer(x)
@@ -133,9 +148,12 @@ class GraphAttentionNetwork(nn.Module):
         # Make predictions
         predictions = self.prediction_head(graph_embedding)
 
-        return {
+        result = {
             'predictions': predictions
         }
+        if return_attention:
+            result['attentions'] = attentions
+        return result
 
     def predict(self, data: Data) -> torch.Tensor:
         """
