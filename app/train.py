@@ -148,7 +148,7 @@ def main():
     # Initialize model
     model = GraphAttentionNetwork(
         input_features=2,
-        hidden_dim=16,  # Reduced for faster training
+        hidden_dim=64,  # Reduced for faster training
         gat_layers=1,
         gat_heads=2,
         fc_hidden_dim=32,

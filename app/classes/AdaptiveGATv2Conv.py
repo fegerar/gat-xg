@@ -67,15 +67,15 @@ class AdaptiveGATv2Conv(GATv2Conv):
             coords_j = x_j[..., :2]
 
             # Relative displacement per edge/head -> take norm over coordinate dim -> [E, H]
-            rel_disp = coords_i - coords_j  # [E, H, 2]
+            rel_disp = coords_j - coords_i  # [E, H, 2]
             rel_dist = torch.norm(rel_disp, dim=-1)  # [E, H]
             # Distance to goal per receiving node (goal broadcast):
             goal = self.goal.to(alpha.device).view(1, 1, 2)  # [1,1,2]
-            dist_to_goal = torch.norm(coords_i - goal, dim=-1)  # [E, H]
+            dist_to_goal = torch.norm(coords_j - goal, dim=-1)  # [E, H]
 
             # Scalar weights per head
             weight_1 = torch.exp(self.l * rel_dist)          # [E, H]
-            weight_2 = torch.exp((1 - self.l) * dist_to_goal) # [E, H]
+            weight_2 = torch.exp(-(1 - self.l) * dist_to_goal) # [E, H]
 
             alpha = alpha * weight_1 * weight_2
         # else: keep original alpha (cannot derive 2D coordinates)
