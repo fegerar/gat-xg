@@ -14,12 +14,6 @@ from .dataset import (
     explore_possessions as dataset_explore_possessions  # Backward compatibility wrapper
 )
 
-from .visualization import (
-    visualize_possession_graphs,
-    explore_possessions,
-    create_simple_possession_plot
-)
-
 __all__ = [
     # Dataset functions
     'download_github_directory',
@@ -30,9 +24,4 @@ __all__ = [
     'progressive_graphs',
     'game2graphs',  # Backward compatibility
     'dataset_explore_possessions',  # Backward compatibility
-    
-    # Visualization functions
-    'visualize_possession_graphs',
-    'explore_possessions',
-    'create_simple_possession_plot'
 ]

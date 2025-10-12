@@ -1,16 +1,16 @@
 """
-Classes module for Progressive Graph Attention Networks (ProGAT-XG).
+Classes module for Graph Attention Networks (GAT-XG).
 
 This module contains the core model architectures and dataset classes for
 Expected Goals (xG) prediction using Graph Attention Networks on soccer data.
 """
 
-from .ProgressiveGraphSoccerDataset import ProgressiveGraphSoccerDataset
-from .ProgressiveGAT import ProgressiveGAT, GraphAttentionLayer
+from .GraphSoccerDataset import GraphSoccerDataset
+from .GraphAttentionNetwork import GraphAttentionNetwork
+from .AdaptiveGATv2Conv import AdaptiveGATv2Conv
 
 __all__ = [
-    'ProgressiveGraphSoccerDataset',
-    'ProgressiveGAT',
-    'GraphAttentionLayer', 
-
+    'GraphSoccerDataset',
+    'GraphAttentionNetwork',
+    'AdaptiveGATv2Conv'
 ]
