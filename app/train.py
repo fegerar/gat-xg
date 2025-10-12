@@ -167,7 +167,7 @@ def main():
         'config': config,
         'train_losses': train_losses,
         'val_losses': val_losses
-    }, 'gat_model.pt')
+    }, '../models/gat_model.pt')
 
     print("Model saved as 'gat_model.pt'")
 
