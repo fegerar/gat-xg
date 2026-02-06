@@ -22,7 +22,7 @@ class AdaptiveGATv2Conv(GATv2Conv):
             dropout=0.0,
             add_self_loops=True,
             bias=True,
-            goal=(0.0, 0.0),  # Coordinate del punto fisso (beta, gamma)
+            goal=(0.0, 0.0),  
             **kwargs,
     ):
         super(AdaptiveGATv2Conv, self).__init__(

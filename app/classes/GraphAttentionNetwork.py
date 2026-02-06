@@ -9,13 +9,6 @@ from .AdaptiveGATv2Conv import AdaptiveGATv2Conv
 
 
 class GraphAttentionNetwork(nn.Module):
-    """
-    Graph Attention Network for Expected Goals prediction.
-
-    This model processes whole graphs representing ball possession
-    and predicts the expected goals (xG) value.
-    """
-
     def __init__(
         self,
         input_features: int = 2,
@@ -26,7 +19,6 @@ class GraphAttentionNetwork(nn.Module):
         dropout: float = 0.1,
         pool_method: str = 'mean'
     ):
-        """Initialize Graph GAT model."""
         super(GraphAttentionNetwork, self).__init__()
 
         self.input_features = input_features
@@ -86,7 +78,6 @@ class GraphAttentionNetwork(nn.Module):
         self._init_weights()
 
     def _init_weights(self):
-        """Initialize model weights."""
         for module in self.modules():
             if isinstance(module, nn.Linear):
                 nn.init.xavier_uniform_(module.weight)
@@ -97,15 +88,6 @@ class GraphAttentionNetwork(nn.Module):
                 nn.init.zeros_(module.bias)
 
     def forward(self, batch_data: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Forward pass through the complete model.
-
-        Args:
-            batch_data: Dictionary containing 'graph' - Batched Data object
-
-        Returns:
-            Dictionary containing 'predictions' - xG predictions [batch_size, 1]
-        """
         # Get the graph data
         data = batch_data['graph']
         x, edge_index, batch = data.x, data.edge_index, data.batch
@@ -138,15 +120,6 @@ class GraphAttentionNetwork(nn.Module):
         }
 
     def predict(self, data: Data) -> torch.Tensor:
-        """
-        Make predictions on new data.
-
-        Args:
-            data: A single Data object
-
-        Returns:
-            xG prediction [1, 1]
-        """
         self.eval()
         with torch.no_grad():
             batch_data = {'graph': Batch.from_data_list([data])}

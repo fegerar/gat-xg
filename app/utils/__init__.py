@@ -1,8 +1,3 @@
-# Utils package for progat-xg
-# 
-# This package contains utilities for processing StatsBomb data and creating visualizations
-# for progressive graph analysis in football/soccer data.
-
 from .dataset import (
     download_github_directory,
     get_event_by_id,
@@ -10,8 +5,7 @@ from .dataset import (
     select_only_shot_possessions,
     possession_to_graph,
     progressive_graphs,
-    game2graphs,  # Backward compatibility wrapper
-    explore_possessions as dataset_explore_possessions  # Backward compatibility wrapper
+    game2graphs, 
 )
 
 __all__ = [
@@ -22,6 +16,5 @@ __all__ = [
     'select_only_shot_possessions',
     'possession_to_graph',
     'progressive_graphs',
-    'game2graphs',  # Backward compatibility
-    'dataset_explore_possessions',  # Backward compatibility
+    'game2graphs', 
 ]

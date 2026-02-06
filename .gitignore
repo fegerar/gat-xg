@@ -10,3 +10,7 @@ temp_repo_*
 .venv/
 
 .DS_Store
+calibration_curve.png
+evaluation_metrics.png
+evaluate_metrics.py
+test_model.py

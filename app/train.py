@@ -1,7 +1,3 @@
-"""
-Training script for Graph Attention Networks (GAT) on soccer data.
-"""
-
 import json
 import torch
 import torch.nn as nn
@@ -15,7 +11,6 @@ from classes import GraphSoccerDataset, GraphAttentionNetwork
 
 
 def train_model(model, train_loader, val_loader, config):
-    """Train the model with the given configuration."""
     device = torch.device(config.get('device', 'cuda' if torch.cuda.is_available() else 'cpu'))
     model = model.to(device)
 

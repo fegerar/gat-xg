@@ -9,9 +9,6 @@ import numpy as np
 
 
 def download_github_directory(repo_url, directory_path, local_path="downloaded_dir", branch="main"):
-    """
-    Download large directory using git sparse-checkout (handles >1000 files).
-    """
     temp_repo = "temp_repo_" + str(hash(repo_url))[:8]
     original_dir = os.getcwd()
     
@@ -112,9 +109,6 @@ def get_event_by_id(events, id):
     return [event for event in events if event['id'] == id][0]
 
 def split_ball_possessions(events):
-    """
-    Split ball possession events into separate sequences.
-    """
     possessions = []
     current_possession = []
     current_team = None
@@ -152,15 +146,9 @@ def split_ball_possessions(events):
     return possessions
 
 def select_only_shot_possessions(possessions):
-    """
-    Filter possessions to only include those that lead to a shot.
-    """
     return [pos for pos in possessions if pos['xg'] > 0.0]
 
 def possession_to_graph(possession):
-    """
-    Convert a single possession to a graph representation.
-    """
     nodes = []
     edges = []
     
@@ -191,10 +179,6 @@ def possession_to_graph(possession):
     return Data(x=x, edge_index=edge_index)
 
 def progressive_graphs(possession):
-    """
-    Create a list of progressive graphs from a single possession.
-    Each graph contains all passes up to that point in the possession.
-    """
     graphs = []
     possession_events = possession['possession']
     
@@ -206,9 +190,6 @@ def progressive_graphs(possession):
     return graphs
 
 def game2graphs(file_path):
-    """
-    Create a list of progressive sequence of graphs from a game file.
-    """
     with open(file_path, 'r') as f:
         data = json.load(f)
 
@@ -220,16 +201,3 @@ def game2graphs(file_path):
     
     return shot_possessions
 
-def explore_possessions(file_path):
-    """
-    Helper function to explore all shot possessions in a game file.
-    This function is kept for backward compatibility and calls the visualization module.
-    
-    Args:
-        file_path: Path to the StatsBomb JSON file
-    
-    Returns:
-        list: List of all shot possessions
-    """
-    from .visualization import explore_possessions as viz_explore_possessions
-    return viz_explore_possessions(file_path)
